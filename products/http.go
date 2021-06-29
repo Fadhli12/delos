@@ -2,12 +2,17 @@ package products
 
 import (
 	"database/sql"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/iannrafisyah/delos/common"
 	"github.com/iannrafisyah/delos/products/domain"
-	"github.com/iannrafisyah/delos/products/handlers"
+	"github.com/iannrafisyah/delos/products/entity"
+	"github.com/iannrafisyah/delos/products/handler"
 	"github.com/iannrafisyah/delos/products/repository"
 )
 
@@ -15,7 +20,7 @@ var handlerProducts domain.ProductsHandler
 
 // Routes :
 func Routes(route *mux.Router, db *sql.DB) {
-	handlerProducts = handlers.NewProductsHandler(
+	handlerProducts = handler.NewProductsHandler(
 		repository.NewProductsRepository(db),
 	)
 	route.HandleFunc("/products", Create).Methods("POST")
@@ -39,7 +44,25 @@ func Routes(route *mux.Router, db *sql.DB) {
 // @Failure 400,500 {object} common.Responses
 // @Router /products [post]
 func Create(w http.ResponseWriter, r *http.Request) {
-	if err := handlerProducts.Create(*r); err != nil {
+
+	//Read body and Set request value to struct
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusBadRequest),
+		})
+		return
+	}
+
+	product := entity.Products{}
+	if err := json.Unmarshal(body, &product); err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusInternalServerError),
+		})
+		return
+	}
+
+	if err := handlerProducts.Create(r.Context(), &product); err != nil {
 		common.ResponseJson(w, &common.ResponseRequest{
 			Error: err,
 		})
@@ -58,13 +81,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} common.Responses
 // @Router /products [get]
 func List(w http.ResponseWriter, r *http.Request) {
-	products, err := handlerProducts.List(*r)
+	products, err := handlerProducts.List(r.Context())
 	if err != nil {
 		common.ResponseJson(w, &common.ResponseRequest{
 			Error: err,
 		})
 		return
-
 	}
 	common.ResponseJson(w, &common.ResponseRequest{
 		Data: products,
@@ -82,7 +104,20 @@ func List(w http.ResponseWriter, r *http.Request) {
 // @Failure 400,404,500 {object} common.Responses
 // @Router /products/{id} [get]
 func Detail(w http.ResponseWriter, r *http.Request) {
-	product, err := handlerProducts.Detail(*r)
+
+	//Get id from segment url
+	params := strings.Split(r.URL.Path, "/")
+	productID, err := strconv.ParseInt(params[2], 10, 16)
+	if err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusBadRequest),
+		})
+		return
+	}
+
+	product, err := handlerProducts.Detail(r.Context(), &entity.Products{
+		ID: int(productID),
+	})
 	if err != nil {
 		common.ResponseJson(w, &common.ResponseRequest{
 			Error: err,
@@ -110,7 +145,35 @@ func Detail(w http.ResponseWriter, r *http.Request) {
 // @Failure 400,500 {object} common.Responses
 // @Router /products/{id} [put]
 func Update(w http.ResponseWriter, r *http.Request) {
-	if err := handlerProducts.Update(*r); err != nil {
+
+	//Read body and Set request value to struct
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusBadRequest),
+		})
+		return
+	}
+
+	product := entity.Products{}
+	if err := json.Unmarshal(body, &product); err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusInternalServerError),
+		})
+		return
+	}
+
+	//Get id from segment url
+	params := strings.Split(r.URL.Path, "/")
+	productID, err := strconv.ParseInt(params[2], 10, 16)
+	if err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusBadRequest),
+		})
+	}
+	product.ID = int(productID)
+
+	if err := handlerProducts.Update(r.Context(), &product); err != nil {
 		common.ResponseJson(w, &common.ResponseRequest{
 			Error: err,
 		})
@@ -130,7 +193,20 @@ func Update(w http.ResponseWriter, r *http.Request) {
 // @Failure 400,404,500 {object} common.Responses
 // @Router /products/{id} [delete]
 func Delete(w http.ResponseWriter, r *http.Request) {
-	if err := handlerProducts.Delete(*r); err != nil {
+
+	//Get id from segment url
+	params := strings.Split(r.URL.Path, "/")
+	productID, err := strconv.ParseInt(params[2], 10, 16)
+	if err != nil {
+		common.ResponseJson(w, &common.ResponseRequest{
+			Error: common.ErrorRequest(err, http.StatusBadRequest),
+		})
+		return
+	}
+
+	if err := handlerProducts.Delete(r.Context(), &entity.Products{
+		ID: int(productID),
+	}); err != nil {
 		common.ResponseJson(w, &common.ResponseRequest{
 			Error: err,
 		})
