@@ -11,4 +11,4 @@ This project using golang languange & database PostgreSQL
 
 ## Swagger Docs
 
-[Swagger.yaml](https://github.com/iannrafisyah/delos/docs/swagger.yaml)
+[Swagger.yaml](https://github.com/iannrafisyah/delos/blob/develop/docs/swagger.yaml)
