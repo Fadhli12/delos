@@ -1,0 +1,205 @@
+basePath: /api/v1
+definitions:
+  common.Responses:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      status:
+        type: string
+    type: object
+host: localhost:9080
+info:
+  contact: {}
+  description: This is a docs products services.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Delos Test API
+  version: "2.0"
+paths:
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Returns product data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.Responses'
+      summary: List products
+      tags:
+      - product
+    post:
+      consumes:
+      - application/json
+      description: Create a new product with the input payload
+      parameters:
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: Description
+        in: body
+        name: description
+        required: true
+        schema:
+          type: string
+      - description: Rating
+        in: body
+        name: rating
+        required: true
+        schema:
+          type: integer
+      - description: Image
+        in: body
+        name: image
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+      summary: Create a new product
+      tags:
+      - product
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product with param id
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+      summary: Delete a product
+      tags:
+      - product
+    get:
+      consumes:
+      - application/json
+      description: Return detail product with param id
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+      summary: Detail a product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Update a product with the input payload and param id
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: Description
+        in: body
+        name: description
+        required: true
+        schema:
+          type: string
+      - description: Rating
+        in: body
+        name: rating
+        required: true
+        schema:
+          type: integer
+      - description: Image
+        in: body
+        name: image
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+        "500":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.Responses'
+      summary: Update a product
+      tags:
+      - product
+swagger: "2.0"
