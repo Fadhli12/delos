@@ -1,5 +1,0 @@
-POSTGRE_HOST: "localhost"
-POSTGRE_PORT: "5432"
-POSTGRE_USER: "evilkidz"
-POSTGRE_PASSWORD: "ian123ian"
-POSTGRE_DATABASE: "db_delos"
