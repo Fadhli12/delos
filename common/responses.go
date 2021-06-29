@@ -5,22 +5,38 @@ import (
 	"net/http"
 )
 
-type Responses struct {
-	Body  interface{}
+type ResponseRequest struct {
+	Data  interface{}
 	Error error
 }
 
+type Responses struct {
+	Code   int         `json:"code"`
+	Status string      `json:"status"`
+	Data   interface{} `json:"data,omitempty"`
+}
+
 // ResponseJson :
-func ResponseJson(w http.ResponseWriter, resp *Responses) {
+func ResponseJson(w http.ResponseWriter, r *ResponseRequest) {
 	w.Header().Set("Content-Type", "application/json")
-	if resp.Error != nil {
-		request, ok := resp.Error.(*RequestError)
+	if r.Error != nil {
+		errInfo, ok := r.Error.(*RequestError)
 		if ok {
-			w.WriteHeader(request.StatusCode)
-			json.NewEncoder(w).Encode(request.Err.Error())
+			w.WriteHeader(errInfo.StatusCode)
+			json.NewEncoder(w).Encode(Responses{
+				Code:   errInfo.StatusCode,
+				Status: errInfo.Error(),
+			})
 		}
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp.Body)
+
+	resp := Responses{}
+	resp.Status = ResponseSuccess
+	resp.Code = http.StatusOK
+	if r.Data != nil {
+		resp.Data = r.Data
+	}
+	json.NewEncoder(w).Encode(resp)
 }

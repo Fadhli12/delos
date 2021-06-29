@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/apex/log"
+	"github.com/iannrafisyah/delos/utilities"
 	"github.com/spf13/viper"
 )
 
@@ -26,7 +26,7 @@ func Environment() {
 
 	env := Env{}
 	if err := viper.ReadInConfig(); err != nil {
-		log.Errorf("Error reading config file %v", err)
+		utilities.Logger.Panic(err)
 	}
 	viper.WatchConfig()
 

@@ -1,10 +1,7 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,6 +11,8 @@ import (
 	"github.com/iannrafisyah/delos/config"
 	"github.com/iannrafisyah/delos/migrations"
 	"github.com/iannrafisyah/delos/products"
+	"github.com/iannrafisyah/delos/utilities"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -21,45 +20,56 @@ var (
 	port    = flag.Int("port", 9080, "Port")
 )
 
+// @title Delos Test API
+// @version 2.0
+// @description This is a docs products services.
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:9080
+// @BasePath /api/v1
+// @query.collection.format multi
+
 func main() {
 	flag.Parse()
 
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	//Initiate logs
+	utilities.Logs()
 
-	//Init Config Environment
+	//Load config env from config.yml
 	config.Environment()
 
-	//Run migration
+	//Initiate migration if version value not zero
 	if *version > 0 {
 		if err := migrations.Migration(&config.Config.PostgreSQL, *version); err != nil {
-			fmt.Println(err.Error())
+			utilities.Logger.Panic(err)
 		}
 		os.Exit(0)
 	}
 
-	//Connection postgreSQL client
+	//Initiate connection postgreSQL client
 	db, err := config.PostgreConnection(&config.Config.PostgreSQL)
 	if err != nil {
-		fmt.Println(err.Error())
+		utilities.Logger.Panic(err)
 	}
 	defer db.Close()
 
-	//Run services
+	//Initiate route and swagger api
 	routes := mux.NewRouter()
+	routes.Use(utilities.LogsMiddleware)
 
+	//Run services products
 	products.Routes(routes, config.PostgreConn)
 
+	//Start server
 	portStr := strconv.Itoa(*port)
 	srv := &http.Server{
 		Handler:      routes,
 		Addr:         ":" + portStr,
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
-		IdleTimeout:  time.Second * 60,
+		ReadTimeout:  120 * time.Second,
+		WriteTimeout: 120 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
-
-	fmt.Println("Server Running in Port : ", portStr)
-
-	log.Fatal(srv.ListenAndServe())
+	logrus.Infof("Server Running in Port : ", portStr)
+	utilities.Logger.Fatal(srv.ListenAndServe())
 }
